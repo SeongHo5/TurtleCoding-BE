@@ -1,4 +1,4 @@
-package net.turtlecoding.damgo.security;
+package net.turtlecoding.damgo.common.security;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -7,29 +7,29 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.configurationprocessor.json.JSONException;
 import org.springframework.boot.configurationprocessor.json.JSONObject;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.web.AuthenticationEntryPoint;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.web.access.AccessDeniedHandler;
 
 import java.io.IOException;
 
 @Slf4j
-public class CustomAuthEntryPoint implements AuthenticationEntryPoint {
+public class CustomAccessDeniedHandler implements AccessDeniedHandler {
 
     @Override
-    public void commence(
+    public void handle(
             HttpServletRequest request,
             HttpServletResponse response,
-            AuthenticationException authException
+            AccessDeniedException accessDeniedException
     ) throws IOException, ServletException {
-        log.error("인증이 필요한 서비스입니다.");
+        log.error("접근 권한이 없습니다.");
 
         response.setContentType("application/json;charset=UTF-8");
-        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+        response.setStatus(HttpServletResponse.SC_FORBIDDEN);
 
         JSONObject responseJson = new JSONObject();
         try {
-            responseJson.put("statusCode", HttpStatus.UNAUTHORIZED.value());
-            responseJson.put("message", "인증이 필요한 서비스입니다.");
+            responseJson.put("statusCode", HttpStatus.FORBIDDEN.value());
+            responseJson.put("message", "접근 권한이 없습니다.");
         } catch (JSONException e) {
             throw new RuntimeException(e);
         }
@@ -37,4 +37,5 @@ public class CustomAuthEntryPoint implements AuthenticationEntryPoint {
 
         response.getWriter().print(responseJson);
     }
+
 }

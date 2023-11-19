@@ -29,7 +29,7 @@ public class ProductController {
         productService.addProductToCart(addCartRequestDto);
     }
 
-    @GetMapping("/info{prodid}")
+    @GetMapping("/info/{prodid}")
     public ResponseEntity<ProductInfoResponseDto> getProductInfo(
             final @PathVariable("prodid") String prodId
     ) {
