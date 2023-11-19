@@ -3,15 +3,19 @@ package net.turtlecoding.damgo.product.entity;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import net.turtlecoding.damgo.common.entity.BaseEntity;
 
+
 @Getter
-@Setter
 @Entity
 @Table(name = "products")
+@NoArgsConstructor
 public class Product extends BaseEntity {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "_id", nullable = false)
@@ -39,5 +43,14 @@ public class Product extends BaseEntity {
     @NotNull
     @Column(name = "quantity", nullable = false)
     private Integer quantity;
+
+    @Builder
+    public Product(String prodId, String category, String name, Integer price, Integer quantity) {
+        this.prodId = prodId;
+        this.category = category;
+        this.name = name;
+        this.price = price;
+        this.quantity = quantity;
+    }
 
 }

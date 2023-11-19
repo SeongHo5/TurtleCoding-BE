@@ -14,8 +14,8 @@ import org.hibernate.annotations.SQLDelete;
 @Entity
 @NoArgsConstructor
 @Table(name = "members")
-@SQLDelete(sql = "UPDATE members SET deleted_at = current_timestamp WHERE id = ?")
 public class Account {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "_id", nullable = false)
@@ -27,9 +27,8 @@ public class Account {
     private String name;
 
     @Email
-    @Size(max = 255)
     @NotNull
-    @Column(name = "email", nullable = false)
+    @Column(name = "email", unique = true)
     private String email;
 
     @Size(max = 255)
@@ -37,22 +36,17 @@ public class Account {
     @Column(name = "password", nullable = false)
     private String password;
 
-    @Email
     @Size(max = 255)
     @NotNull
     @Column(name = "contact", nullable = false)
     private String contact;
 
-    @Size(max = 255)
-    @NotNull
     @Enumerated(EnumType.STRING)
     @Column(name = "role", nullable = false)
     private UserRole role;
 
-
     @Builder
-    public Account(Long id, String name, String email, String password, String contact, UserRole role) {
-        this.id = id;
+    public Account(String name, String email, String password, String contact, UserRole role) {
         this.name = name;
         this.email = email;
         this.password = password;

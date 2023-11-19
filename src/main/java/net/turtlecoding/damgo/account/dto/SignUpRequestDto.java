@@ -14,7 +14,6 @@ import net.turtlecoding.damgo.account.enums.UserRole;
 import java.time.LocalDate;
 
 @Value
-@RequiredArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PRIVATE, force = true)
 public class SignUpRequestDto {
 

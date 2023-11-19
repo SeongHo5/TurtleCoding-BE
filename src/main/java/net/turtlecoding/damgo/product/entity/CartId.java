@@ -2,26 +2,31 @@ package net.turtlecoding.damgo.product.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
 import jakarta.validation.constraints.NotNull;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
+import net.turtlecoding.damgo.account.entity.Account;
 import org.hibernate.Hibernate;
 
 import java.io.Serializable;
 import java.util.Objects;
 
+@Value
 @Getter
-@Setter
 @Embeddable
+@NoArgsConstructor(access = AccessLevel.PROTECTED, force = true)
 public class CartId implements Serializable {
     private static final long serialVersionUID = -8131047912203433099L;
+
     @NotNull
     @Column(name = "_id", nullable = false)
-    private Long id;
+    Long id;
 
     @NotNull
     @Column(name = "user_id", nullable = false)
-    private Long userId;
+    Long userId;
+
 
     @Override
     public boolean equals(Object o) {
@@ -35,6 +40,13 @@ public class CartId implements Serializable {
     @Override
     public int hashCode() {
         return Objects.hash(id, userId);
+    }
+
+    @Builder
+    public CartId(Account account) {
+        // DB 컬럼에서 Auto Increment 를 사용하므로 id는 null로 설정
+        this.id = null;
+        this.userId = account.getId();
     }
 
 }

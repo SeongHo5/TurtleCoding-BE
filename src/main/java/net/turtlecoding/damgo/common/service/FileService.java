@@ -1,13 +1,14 @@
 package net.turtlecoding.damgo.common.service;
 
 import com.amazonaws.services.s3.AmazonS3Client;
-import com.amazonaws.services.s3.model.CannedAccessControlList;
-import com.amazonaws.services.s3.model.DeleteObjectRequest;
-import com.amazonaws.services.s3.model.ObjectMetadata;
-import com.amazonaws.services.s3.model.PutObjectRequest;
+import com.amazonaws.services.s3.model.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.turtlecoding.damgo.common.exception.ServiceFailedException;
+import net.turtlecoding.damgo.product.dto.ProductInfoResponseDto;
+import net.turtlecoding.damgo.product.entity.Product;
+import net.turtlecoding.damgo.product.repository.ProductRepository;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -17,8 +18,7 @@ import java.io.InputStream;
 import java.util.Arrays;
 import java.util.Objects;
 
-import static net.turtlecoding.damgo.common.exception.enums.ExceptionStatus.FAILED_TO_UPLOAD_FILE;
-import static net.turtlecoding.damgo.common.exception.enums.ExceptionStatus.UNSUPPORTED_FILE_FORMAT;
+import static net.turtlecoding.damgo.common.exception.enums.ExceptionStatus.*;
 
 
 @Slf4j
@@ -27,16 +27,19 @@ import static net.turtlecoding.damgo.common.exception.enums.ExceptionStatus.UNSU
 public class FileService {
 
     private final AmazonS3Client objectStorageClient;
+    private final ProductRepository productRepository;
 
-    private final String bucket = "turtlecoding-image-storage";
-    private final static String[] SUPPORTED_IMAGE_FORMAT = {"jpg", "jpeg", "png", ""};
+    private static final String bucket = "turtlecoding-image-storage";
+    private static final String dirName = "images-product";
+    private static final String IMAGE_FORMAT = "jpg";
 
     /**
      * Object Storage 단일 파일 업로드
+     *
      * @param multipartFile 업로드할 파일(이미지만 가능)
-     * @param dirName 업로드할 디렉토리 이름(없으면 생성됨)
+     * @param dirName       업로드할 디렉토리 이름(없으면 생성됨)
      */
-    public void uploadSingleFile(MultipartFile multipartFile, String dirName) {
+    public void uploadSingleFile(MultipartFile multipartFile) {
         ObjectMetadata objectMetadata = new ObjectMetadata();
 
         checkSingleFileFormat(Objects.requireNonNull(multipartFile.getOriginalFilename()));
@@ -54,9 +57,31 @@ public class FileService {
         }
     }
 
-    public void deleteSingleFile(String url, String dirName) {
-        deleteFileFromBucket(url, dirName);
+    public void deleteSingleFile(String url) {
+        deleteFileFromBucket(url);
     }
+
+    /**
+     * 상품 이미지 URL 반환
+     *
+     * @param productId
+     * @return 파일 URL
+     */
+    public ResponseEntity<ProductInfoResponseDto> getFileUrl(String productId) {
+        Product product = productRepository.findByProdId(productId)
+                .orElseThrow(() -> new ServiceFailedException(NOT_FOUND_PRODUCT));
+        String imageUrl = objectStorageClient.getResourceUrl(bucket, dirName + "/" + productId + "." + IMAGE_FORMAT);
+        return ResponseEntity.ok()
+                .body(ProductInfoResponseDto.of(
+                                imageUrl,
+                                product.getCategory(),
+                                product.getName(),
+                                product.getPrice()
+                        )
+                );
+
+    }
+
 
     // ============== PRIVATE METHODS ==============
 
@@ -66,7 +91,7 @@ public class FileService {
     private void checkSingleFileFormat(String fileName) {
         int index = fileName.lastIndexOf(".");
         String extension = fileName.substring(index + 1).toLowerCase();
-        boolean isSupported = Arrays.asList(SUPPORTED_IMAGE_FORMAT).contains(extension);
+        boolean isSupported = Arrays.asList(IMAGE_FORMAT).contains(extension);
         if (!isSupported) {
             throw new ServiceFailedException(UNSUPPORTED_FILE_FORMAT);
         }
@@ -94,7 +119,7 @@ public class FileService {
     /**
      * Object Storage 단일 파일 삭제
      */
-    private void deleteFileFromBucket(String url, String dirName) {
+    private void deleteFileFromBucket(String url) {
         final String[] split = url.split("/");
         final String fileName = dirName + "/" + split[split.length - 1];
         DeleteObjectRequest request = new DeleteObjectRequest(bucket, fileName);
