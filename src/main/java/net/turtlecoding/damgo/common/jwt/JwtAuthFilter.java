@@ -36,7 +36,6 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             HttpServletResponse response,
             FilterChain filterChain
     ) throws ServletException, IOException {
-//        String userToken = cookieUtil.parseCookie(requestHeader.getCookies());
         String userToken = jwtProvider.resolveToken(request);
         // 토큰이 존재할 때만 검증 - 인증을 요구하지 않는 API에 대한 처리
         if (userToken != null) {

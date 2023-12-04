@@ -44,14 +44,6 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(authorize -> authorize
                         .anyRequest().permitAll()
-                )
-                .addFilterBefore(new JwtAuthFilter(jwtProvider, redisUtil),
-                        UsernamePasswordAuthenticationFilter.class)
-                .exceptionHandling(exception -> exception
-                        .authenticationEntryPoint(new CustomAuthEntryPoint())
-                )
-                .exceptionHandling(exception -> exception
-                        .accessDeniedHandler(new CustomAccessDeniedHandler())
                 );
         return http.build();
     }
